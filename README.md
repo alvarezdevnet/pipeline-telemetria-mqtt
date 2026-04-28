@@ -32,7 +32,7 @@ El flujo de los datos sigue este "pipeline":
 - Pantalla: **OLED SSD1306** (Conexión I2C)
 - Actuadores: **Buzzer** (Alarma sonora) y **LEDs** (Indicadores de estado RGB)
 
-![Hardware ESP32](images/esp32_MQTT.jpg)
+
 
 ---
 ## 📋 Requisitos Previos
