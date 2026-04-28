@@ -147,7 +147,7 @@ Puedes acceder directamente a los componentes del proyecto a través de estos en
 
 * **[📂 Infraestructura Docker](docker/)**: Configuración de servicios (Mosquitto, Node-RED).
 * **[📂 Código fuente ESP32](src/esp32_sensor/)**: Lógica, drivers y gestión de hardware del nodo IoT.
-* **[📂 Scripts de utilidades](scripts/)**: Herramientas de automatización para mantenimiento del servidor.
+
 ## 🗺️ Roadmap / Próximos Pasos
 
 Aunque el núcleo del sistema es completamente funcional y seguro, el proyecto sigue en evolución. Algunas posibles mejoras futuras incluyen:
