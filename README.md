@@ -131,10 +131,9 @@ pipeline-telemetria-mqtt/
 Este laboratorio cumple con altos estándares de seguridad para IoT:
 
 1. **Segmentación de Red:** El dispositivo IoT (ESP32) no tiene visibilidad del resto de la red local del hogar gracias a su aislamiento en una VLAN específica.
-2. **Cifrado (TLS):** Los payloads de telemetría no viajan en texto plano; el ESP32 utiliza certificados TLS oficiales para comunicarse con el broker MQTT.
-3. **Autenticación MQTT:** Acceso anónimo deshabilitado. Solo los clientes con credenciales válidas pueden publicar o suscribirse a los topics.
-4. **Cloudflare Tunnel:** La Raspberry Pi actúa como servidor sin exponer puertos a Internet. Un demonio local (`cloudflared`) establece una conexión saliente segura hacia el dominio adquirido.
-5. Acceso protegido por autentificación de doble factor MFA mediante Github y google authenticator.
+2. **Autenticación MQTT:** Acceso anónimo deshabilitado. Solo los clientes con credenciales válidas pueden publicar o suscribirse a los topics.
+3. **Cloudflare Tunnel:** La Raspberry Pi actúa como servidor sin exponer puertos a Internet. Un demonio local (`cloudflared`) establece una conexión saliente segura hacia el dominio adquirido.
+4. Acceso protegido por autentificación de doble factor MFA mediante Github y google authenticator.
 
 ![Seguridad TLS](images/TLS.png)
 
@@ -152,7 +151,7 @@ Puedes acceder directamente a los componentes del proyecto a través de estos en
 
 Aunque el núcleo del sistema es completamente funcional y seguro, el proyecto sigue en evolución. Algunas posibles mejoras futuras incluyen:
 
-- [ ]  Integración de un servidor local de DNS (Pi-hole/AdGuard) en la misma VLAN.
+- [ ]  Intregacion de mTLS para datos entre el dispositivo y el broker para encriptación de datos.
 - [ ]  Incorporación de un segundo nodo ESP32 con sensores de calidad del aire (MQ-135).
 - [ ]  Script de automatización (Bash) para realizar backups automáticos de los volúmenes de InfluxDB y Node-RED.
 - [ ]  Se va a implementar próximamente la plataforma **Ignition** (Inductive Automation) para transformar este pipeline en una solución SCADA industrial completa.
