@@ -1,0 +1,311 @@
+cat ./node-red-data/flows.json
+[
+    {
+        "id": "3d4cce0591784e16",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "f1",
+        "type": "tab",
+        "label": "Ingesta IoT Sovereign",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "mqtt_broker_local",
+        "type": "mqtt-broker",
+        "name": "Mosquitto Local",
+        "broker": "lab-mqtt",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "influx_db_local",
+        "type": "influxdb",
+        "hostname": "influxdb",
+        "port": "8086",
+        "protocol": "http",
+        "database": "sensor_data",
+        "name": "Influx Docker",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "1.x",
+        "url": "http://influxdb:8086",
+        "timeout": "",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "ea8a9812d38a26ab",
+        "type": "telegram bot",
+        "botname": "pon_aqui_el_nombre_del_bot",
+        "usernames": "",
+        "chatids": "",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "pollinterval": 300,
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": 6667,
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbothost": "0.0.0.0",
+        "localbotport": 8443,
+        "publicbotport": 8443,
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    },
+    {
+        "id": "mqtt_in",
+        "type": "mqtt in",
+        "z": "f1",
+        "name": "Entrada ESP32",
+        "topic": "sovereign/telemetria",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "mqtt_broker_local",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 100,
+        "y": 100,
+        "wires": [
+            [
+                "debug_msg",
+                "influx_prep",
+                "c2e841b47c6ca7a6",
+                "5dd513d81c6a6d2f"
+            ]
+        ]
+    },
+    {
+        "id": "debug_msg",
+        "type": "debug",
+        "z": "f1",
+        "name": "VER DATOS (DEBUG)",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 420,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "influx_prep",
+        "type": "function",
+        "z": "f1",
+        "name": "Formatear para BD",
+        "func": "// Mantenemos el topic original por si acaso\nmsg.topic = \"dht11_sensor\"; \n\n// Creamos el payload traduciendo los nombres\n// PERO mantenemos las etiquetas (tags) importantes\nmsg.payload = {\n    temperatura: parseFloat(msg.payload.temp),\n    humedad: parseFloat(msg.payload.hum),\n    device: msg.payload.device,  // <--- IMPORTANTE: No pierdas esto\n    ip: msg.payload.ip\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 160,
+        "wires": [
+            [
+                "influx_out"
+            ]
+        ]
+    },
+    {
+        "id": "influx_out",
+        "type": "influxdb out",
+        "z": "f1",
+        "influxdb": "influx_db_local",
+        "name": "Guardar en InfluxDB",
+        "measurement": "dht11_sensor",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "database",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 640,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "db96645e78a658ea",
+        "type": "telegram receiver",
+        "z": "f1",
+        "name": "",
+        "bot": "ea8a9812d38a26ab",
+        "saveDataDir": "",
+        "filterCommands": false,
+        "hasinput": false,
+        "inputs": 0,
+        "handleallupdates": false,
+        "x": 310,
+        "y": 440,
+        "wires": [
+            [
+                "2aa013bbeb2eeb76"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "2aa013bbeb2eeb76",
+        "type": "debug",
+        "z": "f1",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "a7527f4b68fdc1df",
+        "type": "function",
+        "z": "f1",
+        "name": "function 1",
+        "func": "// PESTAÑA: ON MESSAGE\n\n// 1. ASIGNACIÓN DE VARIABLES\nvar valorHumedad = msg.payload.hum;\nvar valorTemp = msg.payload.temp;\nvar nombreDispositivo = msg.payload.device;\nvar estado = msg.payload.status;\n\n// TU ID \nvar myChatId = \"pon_tu_chat_ID\"; \n\n// 2. PROTECCIÓN\nif (valorHumedad === undefined) return null;\n\n// 3. CONSTRUCCIÓN DEL MENSAJE\nmsg.payload = {\n    chatId: myChatId,\n    type: \"message\",\n    content: \"🚨 *ALERTA CRÍTICA DE INFRAESTRUCTURA* 🚨\\n\\n\" +\n             \"📡 Dispositivo: \" + nombreDispositivo + \"\\n\" +\n             \"💧 Humedad: \" + valorHumedad + \"% (Crítico)\\n\" +\n             \"🌡️ Temperatura: \" + valorTemp + \"ºC\\n\" +\n             \"ℹ️ Estado Sensor: \" + estado\n};\n\n// --- LA LÍNEA QUE FALTABA ---\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 320,
+        "wires": [
+            [
+                "6bdcbf163455648f"
+            ]
+        ]
+    },
+    {
+        "id": "6bdcbf163455648f",
+        "type": "telegram sender",
+        "z": "f1",
+        "name": "",
+        "bot": "ea8a9812d38a26ab",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1090,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c2e841b47c6ca7a6",
+        "type": "switch",
+        "z": "f1",
+        "name": "",
+        "property": "payload.hum",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gt",
+                "v": "70",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 270,
+        "y": 260,
+        "wires": [
+            [
+                "799cc1af46bae2ed"
+            ]
+        ]
+    },
+    {
+        "id": "799cc1af46bae2ed",
+        "type": "delay",
+        "z": "f1",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "30",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": true,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 520,
+        "y": 320,
+        "wires": [
+            [
+                "a7527f4b68fdc1df"
+            ]
+        ]
+    },
+    {
+        "id": "5dd513d81c6a6d2f",
+        "type": "switch",
+        "z": "f1",
+        "name": "",
+        "property": "payload.temp",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gt",
+                "v": "25",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 270,
+        "y": 380,
+        "wires": [
+            [
+                "799cc1af46bae2ed"
+            ]
+        ]
+    }
