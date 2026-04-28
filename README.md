@@ -3,7 +3,7 @@
 
 ![Diagrama MQTT](images/mqtt.png)
 
-Este repositorio proporciona la infraestructura completa para desplegar un sistema de telemetría IoT de grado empresarial. La arquitectura captura métricas ambientales (temperatura y humedad) a través de un nodo Edge (ESP32) y asegura el transporte de los datos utilizando el protocolo MQTT sobre TLS. Posteriormente, la información es orquestada en Node-RED, persistida en InfluxDB para el análisis de series temporales, y monitorizada en tiempo real mediante dashboards en Grafana, incorporando un sistema de notificaciones críticas vía Telegram.
+Este repositorio proporciona la infraestructura completa para desplegar un sistema de telemetría IoT de grado empresarial. La arquitectura captura métricas ambientales (temperatura y humedad) a través de un nodo Edge (ESP32) . Posteriormente, la información es orquestada en Node-RED, persistida en InfluxDB para el análisis de series temporales, y monitorizada en tiempo real mediante dashboards en Grafana, incorporando un sistema de notificaciones críticas vía Telegram.
 
 El diseño destaca por su arquitectura **Security-First**. Para mitigar riesgos, el entorno implementa segmentación de red mediante VLANs (aislando los dispositivos IoT), cifrado de datos en tránsito, y políticas de autenticación estricta. Además, se garantiza un acceso remoto seguro sin exponer puertos públicos al exterior, utilizando **Cloudflare Zero Trust** como proxy inverso hacia la Raspberry Pi. Para respaldar esta infraestructura y asegurar la confianza de las conexiones de extremo a extremo, el sistema se apoya en un dominio personalizado que permite la validación oficial de certificados SSL/TLS.
 
