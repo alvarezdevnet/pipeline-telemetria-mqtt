@@ -1,8 +1,7 @@
-# Pipeline de Telemetría MQTT
 
 # Pipeline de Telemetría IoT  (Zero Trust Architecture)
 
-![mqtt.png](mqtt.png)
+![Diagrama MQTT](images/mqtt.png)
 
 Este repositorio proporciona la infraestructura completa para desplegar un sistema de telemetría IoT de grado empresarial. La arquitectura captura métricas ambientales (temperatura y humedad) a través de un nodo Edge (ESP32) y asegura el transporte de los datos utilizando el protocolo MQTT sobre TLS. Posteriormente, la información es orquestada en Node-RED, persistida en InfluxDB para el análisis de series temporales, y monitorizada en tiempo real mediante dashboards en Grafana, incorporando un sistema de notificaciones críticas vía Telegram.
 
@@ -21,7 +20,8 @@ El flujo de los datos sigue este "pipeline":
 5. **Visualización (Grafana):** Se conecta a InfluxDB para mostrar los datos en dashboards interactivos.
 6. **Alertas (Telegram):** Node-RED envía notificaciones a un Bot si se superan los umbrales de seguridad.
 
-![nodered.png](nodered.png)
+
+![Flujo Node-RED](images/nodered.png)
 
 ---
 
@@ -32,10 +32,59 @@ El flujo de los datos sigue este "pipeline":
 - Pantalla: **OLED SSD1306** (Conexión I2C)
 - Actuadores: **Buzzer** (Alarma sonora) y **LEDs** (Indicadores de estado RGB)
 
-![esp32_MQTT.jpg](esp32_MQTT.jpg)
+![Hardware ESP32](images/esp32_MQTT.jpg)
+
+---
+## 📋 Requisitos Previos
+
+Antes de proceder con el despliegue, asegúrate de contar con lo siguiente:
+
+* **Infraestructura:** Una Raspberry Pi (o servidor Linux) con `docker` y `docker-compose` instalados.
+* **Red:** Conexión a internet estable.
+* **Seguridad:** Un dominio personalizado (obligatorio para la gestión de certificados SSL/TLS oficiales vía Cloudflare).
+* **Cuenta de Telegram:** Un Bot de Telegram creado y su correspondiente Token de API (necesario para las alertas críticas).
+* **Entorno de desarrollo:** Thonny IDE (o similar) para flashear el código en el ESP32.
 
 ---
 
+## ⚙️ Configuración del ESP32
+
+Para que el nodo IoT funcione correctamente, sigue estos pasos:
+
+1. **Librerías:** Asegúrate de copiar tanto `main.py` como `ssd1306.py` (el driver de la pantalla) a la raíz del ESP32. Sin el driver, el sistema no podrá inicializar la interfaz visual.
+2. **Credenciales:** Renombra el archivo `src/esp32_sensor/secrets.example.py` a `secrets.py`. **Edítalo** para incluir tu SSID, contraseña WiFi, y las credenciales de tu broker MQTT. 
+   > **⚠️ NOTA:** Este archivo `secrets.py` contiene información sensible y está incluido en el `.gitignore`. **Nunca lo subas al repositorio público.**
+
+### Esquema de Conexión Física
+Para realizar la conexión física entre el sensor DHT11, la pantalla OLED y el ESP32, sigue el siguiente esquema:
+#### 📋 Resumen de Conexiones (Pinout)
+
+| Componente | Pin ESP32 | Función en el Script |
+| :--- | :--- | :--- |
+| **Sensor DHT11** | GPIO 5 | Lectura de datos |
+| **OLED (SDA)** | GPIO 21 | Comunicación I2C |
+| **OLED (SCL)** | GPIO 22 | Comunicación I2C |
+| **LED Verde** | GPIO 19 | Indicador de estado OK |
+| **LED Azul** | GPIO 4 | Alerta Humedad |
+| **LED Rojo** | GPIO 23 | Alerta Temperatura |
+| **Buzzer** | GPIO 18 | Salida PWM (Alarma) |
+
+---
+
+### 💡 Notas Técnicas para el Montaje
+
+* **Gestión de GND:** Asegúrate de que todos los componentes (OLED, sensor y LEDs) compartan el mismo pin **GND** del ESP32 para evitar lecturas erráticas.
+* **Resistencia Pull-up (DHT11):** Si el sensor no devuelve datos, añade una resistencia de entre **4.7kΩ y 10kΩ** entre el pin de datos (GPIO 5) y el pin de 3.3V.
+* **Estabilidad del Buzzer:** Al ser un componente inductivo, si notas reinicios inesperados al sonar la alarma, coloca un **condensador electrolítico (ej. 100µF)** entre los terminales VCC y GND del buzzer para filtrar el ruido eléctrico.
+* **Protección de LEDs:** No olvides colocar una **resistencia limitadora (220Ω - 330Ω)** en serie con cada LED para proteger los puertos GPIO de tu placa ESP32.
+* **Alimentación OLED:** La mayoría de pantallas OLED SSD1306 funcionan a 3.3V, pero verifica la etiqueta de tu módulo. Conéctala al pin de **3.3V** del ESP32 para evitar daños.
+
+
+
+![Montaje Físico y Sensores](images/esp32_MQTT.jpg)
+> Conexión física detallada: El sensor DHT11 conectado a GPIO 5, la pantalla OLED mediante I2C (GPIO 21 SDA, GPIO 22 SCL), y los actuadores (LEDs/Buzzer) en sus respectivos pines de salida.
+
+---
 ## 📦 Stack de Software (Docker)
 
 Toda la infraestructura del servidor corre sobre una Raspberry Pi (o servidor Linux) utilizando `docker-compose`. Los servicios están aislados en una red virtual llamada `iot-net`.
@@ -45,7 +94,7 @@ Toda la infraestructura del servidor corre sobre una Raspberry Pi (o servidor Li
 - `influxdb:1.8` (Puerto 8086)
 - `grafana/grafana-oss:latest` (Puerto 3000)
 
-![grafana.png](grafana.png)
+![Dashboard Grafana](images/grafana.png)
 
 > Aqui vemos un ejemplo de las últimas 24 horas como desde la web monitorizo la temperatura y la humedad con alertas desde cualquier punto del planeta.
 > 
@@ -85,13 +134,20 @@ Este laboratorio cumple con altos estándares de seguridad para IoT:
 2. **Cifrado (TLS):** Los payloads de telemetría no viajan en texto plano; el ESP32 utiliza certificados TLS oficiales para comunicarse con el broker MQTT.
 3. **Autenticación MQTT:** Acceso anónimo deshabilitado. Solo los clientes con credenciales válidas pueden publicar o suscribirse a los topics.
 4. **Cloudflare Tunnel:** La Raspberry Pi actúa como servidor sin exponer puertos a Internet. Un demonio local (`cloudflared`) establece una conexión saliente segura hacia el dominio adquirido.
+5. Acceso protegido por autentificación de doble factor MFA mediante Github y google authenticator.
 
-![TLS.png](TLS.png)
+![Seguridad TLS](images/TLS.png)
 
 Encriptacion modo Full Estricta para respetar la maxima seguridad que nos ofrece el tunel.
 
 ---
+## 📂 Exploración del Repositorio
 
+Puedes acceder directamente a los componentes del proyecto a través de estos enlaces:
+
+* **[📂 Infraestructura Docker](docker/)**: Configuración de servicios (Mosquitto, Node-RED).
+* **[📂 Código fuente ESP32](src/esp32_sensor/)**: Lógica, drivers y gestión de hardware del nodo IoT.
+* **[📂 Scripts de utilidades](scripts/)**: Herramientas de automatización para mantenimiento del servidor.
 ## 🗺️ Roadmap / Próximos Pasos
 
 Aunque el núcleo del sistema es completamente funcional y seguro, el proyecto sigue en evolución. Algunas posibles mejoras futuras incluyen:
@@ -110,7 +166,6 @@ Aunque el núcleo del sistema es completamente funcional y seguro, el proyecto s
 
 José Álvarez Domínguez Técnico de *Sistemas, Redes y Telemetría IoT*
 
-- [Mi perfil de GitHub](https://github.com/TU_USUARIO)
 - [Mi perfil de LinkedIn](https://linkedin.com/in/TU_USUARIO)
 
 ---
