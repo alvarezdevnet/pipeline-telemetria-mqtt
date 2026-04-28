@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Infraestructura y Secretos adicionales ---
+# Asegura que tus volúmenes de Docker nunca suban
+docker/data/
+docker/backups/
+docker/db_data/
+
+# Ficheros de variables de entorno específicos 
+*.env
+*.local
+secrets/
