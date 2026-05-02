@@ -4,12 +4,13 @@ services:
     container_name: lab-mqtt
     restart: unless-stopped
     user: "1883:1883"
+    ports:
+      - "1883:1883" 
     networks:
       - iot-frontend
     volumes:
       - ${PATH_MQTT_DATA}:/mosquitto/data:rw
-      # Hardening: La config se lee, no se toca desde el contenedor
-      - ./mosquitto/config:/mosquitto/config:ro 
+      - ./mosquitto/config:/mosquitto/config:ro
 
   influxdb:
     image: influxdb:1.8
@@ -18,6 +19,7 @@ services:
     user: "${USER_ID}:${GROUP_ID}"
     networks:
       - iot-backend
+      - iot-frontend
     volumes:
       - ${PATH_INFLUX_DATA}:/var/lib/influxdb:rw
 
@@ -28,6 +30,8 @@ services:
     user: "${USER_ID}:${GROUP_ID}"
     environment:
       - TZ=Europe/Madrid
+    ports:
+      - "1880:1880"
     networks:
       - iot-frontend
       - iot-backend
@@ -37,8 +41,23 @@ services:
       - mosquitto
       - influxdb
 
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: lab-grafana
+    restart: unless-stopped
+    user: "472" # Grafana usa este UID internamente
+    ports:
+      - "3000:3000"
+    networks:
+      - iot-backend # Conectado a la base de datos
+      - iot-frontend
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    depends_on:
+      - influxdb
+
 networks:
   iot-frontend:
     driver: bridge
   iot-backend:
-    internal: true # Capa de seguridad: red aislada de internet
+    internal: true # Red aislada de internet
