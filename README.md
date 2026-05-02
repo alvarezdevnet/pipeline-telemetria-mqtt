@@ -1,5 +1,6 @@
 
 # Pipeline de Telemetría IoT  (Zero Trust Architecture)
+[🇺🇸 English version](README_ENG.md)
 
 ![Diagrama MQTT](images/mqtt.png)
 
