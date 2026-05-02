@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     user: "1883:1883"
     ports:
-      - "1883:1883" 
+      - "1883:1883"
     networks:
       - iot-frontend
     volumes:
@@ -17,9 +17,9 @@ services:
     container_name: lab-influx
     restart: unless-stopped
     user: "${USER_ID}:${GROUP_ID}"
+    # InfluxDB no necesita puertos hacia afuera ni red frontend
     networks:
       - iot-backend
-      - iot-frontend
     volumes:
       - ${PATH_INFLUX_DATA}:/var/lib/influxdb:rw
 
@@ -33,8 +33,8 @@ services:
     ports:
       - "1880:1880"
     networks:
-      - iot-frontend
-      - iot-backend
+      - iot-frontend # Para escuchar a Mosquitto
+      - iot-backend  # Para escribir en InfluxDB
     volumes:
       - ${PATH_NODERED_DATA}:/data:rw
     depends_on:
@@ -45,12 +45,12 @@ services:
     image: grafana/grafana-oss:latest
     container_name: lab-grafana
     restart: unless-stopped
-    user: "472" # Grafana usa este UID internamente
+    user: "472"
     ports:
       - "3000:3000"
     networks:
-      - iot-backend # Conectado a la base de datos
-      - iot-frontend
+      - iot-frontend # Para que tú accedas vía web/Cloudflare
+      - iot-backend  # Para leer los datos de InfluxDB
     volumes:
       - ./grafana-data:/var/lib/grafana
     depends_on:
@@ -60,4 +60,4 @@ networks:
   iot-frontend:
     driver: bridge
   iot-backend:
-    internal: true # Red aislada de internet
+    internal: true # Aislamiento total de internet y de la red externa
