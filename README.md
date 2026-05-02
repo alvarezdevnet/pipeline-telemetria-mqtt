@@ -35,7 +35,7 @@ El flujo de los datos sigue este "pipeline":
 
 
 ---
-## 📋 Requisitos Previos
+## Requisitos Previos
 
 Antes de proceder con el despliegue, asegúrate de contar con lo siguiente:
 
@@ -96,7 +96,7 @@ Toda la infraestructura del servidor corre sobre una Raspberry Pi (o servidor Li
 
 ![Dashboard Grafana](images/grafana.png)
 
-> Aqui vemos un ejemplo de las últimas 24 horas como desde la web monitorizo la temperatura y la humedad con alertas desde cualquier punto del planeta.
+> Aqui vemos un ejemplo de las últimas horas como desde la web monitorizo la temperatura y la humedad junto con un historico de la media ademas de Alertas en telegram segun los parámetros que le indique desde cualquier punto del planeta.
 > 
 
 ---
@@ -146,6 +146,22 @@ Puedes acceder directamente a los componentes del proyecto a través de estos en
 
 * **[📂 Infraestructura Docker](docker/)**: Configuración de servicios (Mosquitto, Node-RED).
 * **[📂 Código fuente ESP32](src/esp32_sensor/)**: Lógica, drivers y gestión de hardware del nodo IoT.
+
+## Detalles de Infraestructura (Docker & Environment)
+
+### Orquestación y Redes
+El archivo `docker-compose.yml` no solo levanta servicios, implementa una topología de red segura:
+*   **iot-frontend:** Red de puente (bridge) para comunicación entre el broker MQTT y el motor lógico.
+*   **iot-backend (Internal):** Red aislada sin Gateway de último recurso (0.0.0.0/0). Aquí reside InfluxDB para evitar exfiltración de datos o ataques directos desde el exterior.
+
+### Gestión de Entorno (.env)
+Se utiliza un archivo `.env` para inyectar la configuración en tiempo de ejecución. 
+**¿Por qué usamos USER_ID y GROUP_ID?**
+Para evitar que los contenedores corran como `root`. Al mapear el UID/GID de tu usuario de Linux, los archivos escritos en los volúmenes persistentes te pertenecen a ti y no al superusuario, mejorando el hardening del host.
+
+**Instrucciones:**
+1. Copia la plantilla: `cp .env.example .env`
+2. Ajusta las rutas y los IDs según tu sistema (`id -u`).
 
 ## 🗺️ Roadmap / Próximos Pasos
 

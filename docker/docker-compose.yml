@@ -3,59 +3,42 @@ services:
     image: eclipse-mosquitto:latest
     container_name: lab-mqtt
     restart: unless-stopped
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    volumes:
-      - ./mosquitto/config:/mosquitto/config
-      - ./mosquitto/data:/mosquitto/data
-      - ./mosquitto/log:/mosquitto/log
+    user: "1883:1883"
     networks:
-      - iot-net
+      - iot-frontend
+    volumes:
+      - ${PATH_MQTT_DATA}:/mosquitto/data:rw
+      # Hardening: La config se lee, no se toca desde el contenedor
+      - ./mosquitto/config:/mosquitto/config:ro 
 
   influxdb:
     image: influxdb:1.8
     container_name: lab-influx
     restart: unless-stopped
-    environment:
-      - INFLUXDB_DB=sensor_data
-    ports:
-      - "8086:8086"
-    volumes:
-      - ./influxdb-data:/var/lib/influxdb
+    user: "${USER_ID}:${GROUP_ID}"
     networks:
-      - iot-net
+      - iot-backend
+    volumes:
+      - ${PATH_INFLUX_DATA}:/var/lib/influxdb:rw
 
   node-red:
     image: nodered/node-red:latest
     container_name: lab-nodered
     restart: unless-stopped
+    user: "${USER_ID}:${GROUP_ID}"
     environment:
       - TZ=Europe/Madrid
-    ports:
-      - "1880:1880"
+    networks:
+      - iot-frontend
+      - iot-backend
     volumes:
-      - ./node-red-data:/data
+      - ${PATH_NODERED_DATA}:/data:rw
     depends_on:
       - mosquitto
       - influxdb
-    networks:
-      - iot-net
-
-  grafana:
-    image: grafana/grafana-oss:latest
-    container_name: lab-grafana
-    restart: unless-stopped
-    user: "472"
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./grafana-data:/var/lib/grafana
-    depends_on:
-      - influxdb
-    networks:
-      - iot-net
 
 networks:
-  iot-net:
-    external: true
+  iot-frontend:
+    driver: bridge
+  iot-backend:
+    internal: true # Capa de seguridad: red aislada de internet
