@@ -168,7 +168,6 @@ Para evitar que los contenedores corran como `root`. Al mapear el UID/GID de tu 
 
 Aunque el núcleo del sistema es completamente funcional y seguro, el proyecto sigue en evolución. Algunas posibles mejoras futuras incluyen:
 
-- [ ]  Intregacion de mTLS para datos entre el dispositivo y el broker para encriptación de datos.
 - [ ]  Incorporación de un segundo nodo ESP32 con sensores de calidad del aire (MQ-135).
 - [ ]  Script de automatización (Bash) para realizar backups automáticos de los volúmenes de InfluxDB y Node-RED.
 - [ ]  Se va a implementar próximamente la plataforma **Ignition** (Inductive Automation) para transformar este pipeline en una solución SCADA industrial completa.
@@ -176,6 +175,29 @@ Aunque el núcleo del sistema es completamente funcional y seguro, el proyecto s
 - [ ]  **Scripts en Python:** Procesamiento de datos complejo en el servidor mediante el motor de scripting de Ignition.
 - [ ]  **Reporting Engine:** Generación automática de reportes de estado y eficiencia del sistema.
 
+### (UPDATE) 23-05-2026 
+
+- [x]  Integración de mTLS para datos entre el dispositivo y el broker. (Nota: Se comprobó que el protocolo mTLS excede la capacidad de SRAM de un ESP32; análisis detallado en [alvarezops.tech/blog/esp32-mtls](https://alvarezops.tech/blog/esp32-mtls)).
+- [x]  Implementación de monitorización de infraestructura de red mediante protocolo SNMP.
+- [x]  Unificación de telemetría física (MQTT/OT) y lógica (SNMP/IT) en el pipeline de Node-RED.
+
+---
+
+### Monitorización de Infraestructura (Evolución V1.1)
+
+El proyecto Sandevistan ha evolucionado de una simple tubería de telemetría IoT a un sistema unificado de gestión de infraestructura. Además de la ingesta de sensores físicos vía MQTT, se ha integrado la consulta de dispositivos de red mediante el protocolo **SNMP**.
+
+![Integración SNMP](/images/snmp.png)
+*Configuración del nodo SNMP en Node-RED para la ingesta de telemetría de red.*
+
+#### ¿Por qué esta integración?
+La monitorización aislada (solo sensores o solo red) limita la visibilidad. Esta evolución permite:
+
+1.  **Convergencia IT/OT:** Centralizar en un único pipeline de datos (`Node-RED` -> `InfluxDB`) tanto los datos ambientales del entorno (telemetría OT) como el estado de salud de la red (gestión IT).
+2.  **Visibilidad granular:** Mediante el uso de **OIDs** (Object Identifiers), es posible extraer métricas críticas de hardware de red —como temperatura de la CPU, uso de RAM y carga del sistema— directamente desde equipos profesionales como MikroTik.
+3.  **Correlación de datos:** Al inyectar estas métricas en la misma base de datos temporal, es posible detectar anomalías cruzadas. Por ejemplo, identificar si un aumento en la temperatura de la sala (ESP32) está afectando al rendimiento o estabilidad del router (SNMP).
+
+***Esta implementación optimiza la gestión del laboratorio, reduciendo la dependencia de software de terceros y consolidando una arquitectura basada en protocolos estándar de industria.***
 ---
 
 ## 👨‍💻 Autor
