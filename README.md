@@ -204,7 +204,7 @@ La monitorización aislada (solo sensores o solo red) limita la visibilidad. Est
 
 José Álvarez Domínguez Técnico de *Sistemas, Redes y Telemetría IoT*
 
-- [Mi perfil de LinkedIn](https://linkedin.com/in/jadomin)
+- [Mi perfil de LinkedIn](https://linkedin.com/in/alvarezops)
 
 ---
 
